@@ -37,25 +37,29 @@ st.set_page_config(page_title="AI Translator", layout="centered")
 st.title("🌍 AI Translator Agent")
 
 text_input = st.text_input("✏️ Enter a word or paragraph:")
-target_lang = st.text_area("📋 Enter your instruction (e.g., Translate to Urdu, or Explain meaning in this language):")
+target_lang = st.text_area("📋 Enter your instruction (e.g., Translate to Urdu, or Explain meaning in French):")
 
 # 💡 Usage Note
 st.markdown("""
 > 💡 **Note:** Enter the **word or paragraph** in the first box. In the second box, write what you want — for example:  
 > - "Translate it into Urdu"  
-> - "Tell me its meaning in this lang"  
+> - "Tell me its meaning in French"  
 > - "Explain the word in simple English"
 """)
 
+# Define async wrapper
+async def run_translation():
+    return await Runner.run_async(
+        Translator,
+        input=f"{text_input}. {target_lang}",
+        run_config=config
+    )
+
+# Handle translate button
 if st.button("Translate"):
     if text_input and target_lang:
         with st.spinner("Translating..."):
-            full_prompt = f"{text_input}. {target_lang}"
-            response = Runner.run_sync(
-                Translator,
-                input=full_prompt,
-                run_config=config,
-            )
+            response = asyncio.run(run_translation())
             st.success("Translation complete!")
             st.write("**🌐 Result:**")
             st.markdown(response.output)
