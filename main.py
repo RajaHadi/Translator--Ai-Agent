@@ -32,31 +32,33 @@ Translator = Agent(
     instructions="""You are a Translator agent. Translate the Paragraph that user will give to you to the language user says to you."""
 )
 
+
 st.set_page_config(page_title="AI Translator", layout="centered")
 st.title("🌍 AI Translator Agent")
 
-text_input = st.text_area("✏️ Enter text to translate:")
-target_lang = st.text_input("🌐 Target language (e.g., English, French, Urdu):")
+text_input = st.text_input("✏️ Enter a word or paragraph:")
+target_lang = st.text_area("📋 Enter your instruction (e.g., Translate to Urdu, or Explain meaning in this language):")
 
-
-async def translate_text():
-    return await Runner.run(
-        Translator,
-        input=f"{text_input}. Translate it into {target_lang}",
-        run_config=config,
-    )
+# 💡 Usage Note
+st.markdown("""
+> 💡 **Note:** Enter the **word or paragraph** in the first box. In the second box, write what you want — for example:  
+> - "Translate it into Urdu"  
+> - "Tell me its meaning in this lang"  
+> - "Explain the word in simple English"
+""")
 
 if st.button("Translate"):
     if text_input and target_lang:
         with st.spinner("Translating..."):
-            response = asyncio.run(translate_text())
+            full_prompt = f"{text_input}. {target_lang}"
+            response = Runner.run_sync(
+                Translator,
+                input=full_prompt,
+                run_config=config,
+            )
             st.success("Translation complete!")
-            st.write("**🌐 Translation:**")
-            st.markdown(response.final_output)
+            st.write("**🌐 Result:**")
+            st.markdown(response.output)
     else:
-        st.warning("Please enter both text and target language.")
-
-
-st.info("💡 You can also give instructions in the language box about the translation.")
-
+        st.warning("Please fill in both the word/paragraph and your instruction.")
 
