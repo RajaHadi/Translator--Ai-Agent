@@ -39,16 +39,16 @@ or simplify complex sentences based on the user's instruction.
 )
 
 st.set_page_config(page_title="🌍 AI Translator", layout="centered")
-st.title("🌐 Gemini Translator Agent")
+st.title("🌐Translator Agent")
 
 text_input = st.text_area("✏️ Enter word / sentence / paragraph:")
-target_lang = st.text_input("📋 What to do? (e.g., Translate to Urdu, Explain in French, etc.)")
+target_lang = st.text_input("📋 What to do? (e.g., Translate to urdu, Explain in fernch(any language), etc.)")
 
 st.markdown("""
 > 💡 Example Instructions:
-> - "Translate into Urdu"
+> - "Translate into this languge(any language)"
 > - "Explain in simple English"
-> - "Tell me its meaning in French"
+> - "Tell me its meaning in this language(any language)"
 """)
 
 if st.button("🚀 Translate"):
