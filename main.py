@@ -1,9 +1,12 @@
-from agents import Agent, Runner, AsyncOpenAI, OpenAIChatCompletionsModel, RunConfig
-from dotenv import load_dotenv
 import streamlit as st
+from dotenv import load_dotenv
 import asyncio
+import nest_asyncio
 import os
+from agents import Agent, Runner, AsyncOpenAI, OpenAIChatCompletionsModel, RunConfig
 
+# Patch event loop for Streamlit
+nest_asyncio.apply()
 load_dotenv()
 
 gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -55,13 +58,13 @@ async def run_translation():
         run_config=config
     )
 
-# Use streamlit's asyncio-compatible run helper
 if st.button("Translate"):
     if text_input and target_lang:
         with st.spinner("Translating..."):
-            response = asyncio.run_coroutine_threadsafe(run_translation(), asyncio.get_event_loop()).result()
+            loop = asyncio.get_event_loop()
+            response = loop.run_until_complete(run_translation())
             st.success("Translation complete!")
             st.write("**🌐 Result:**")
             st.markdown(response.output)
+    else:
         st.warning("Please fill in both the word/paragraph and your instruction.")
-
