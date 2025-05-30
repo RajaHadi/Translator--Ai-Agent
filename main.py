@@ -1,23 +1,24 @@
 import streamlit as st
-from dotenv import load_dotenv
-import asyncio
-import nest_asyncio
-import os
 from agents import Agent, Runner, AsyncOpenAI, OpenAIChatCompletionsModel, RunConfig
+from dotenv import load_dotenv
+import os
 
-# Patch event loop for Streamlit
-nest_asyncio.apply()
+# Load Gemini API key from .env
 load_dotenv()
-
 gemini_api_key = os.getenv("GEMINI_API_KEY")
-if not gemini_api_key:
-    raise ValueError("GEMINI_API_KEY is not set. Please ensure it is defined in your .env file.")
 
+# Validate API key
+if not gemini_api_key:
+    st.error("❌ GEMINI_API_KEY not found. Set it in your .env file.")
+    st.stop()
+
+# Set up external client for Gemini
 external_client = AsyncOpenAI(
     api_key=gemini_api_key,
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
+# Use Gemini 2.0 Flash model
 model = OpenAIChatCompletionsModel(
     model="gemini-2.0-flash",
     openai_client=external_client
@@ -29,42 +30,45 @@ config = RunConfig(
     tracing_disabled=True
 )
 
-# Write Agent
-Translator = Agent(
-    name='Translator Agent',
-    instructions="""You are a Translator agent. Translate the Paragraph that user will give to you to the language user says to you."""
+# Define your AI agent (Translator, Writer, etc.)
+translator_agent = Agent(
+    name="Translator",
+    instructions="""
+You are a multilingual assistant. You can translate text to any language, explain meanings, 
+or simplify complex sentences based on the user's instruction.
+"""
 )
 
+# --- Streamlit UI ---
+st.set_page_config(page_title="🌍 AI Translator", layout="centered")
+st.title("🌐 Gemini Translator Agent")
 
-st.set_page_config(page_title="AI Translator", layout="centered")
-st.title("🌍 AI Translator Agent")
+text_input = st.text_area("✏️ Enter word / sentence / paragraph:")
+target_lang = st.text_input("📋 What to do? (e.g., Translate to Urdu, Explain in French, etc.)")
 
-text_input = st.text_input("✏️ Enter a word or paragraph:")
-target_lang = st.text_area("📋 Enter your instruction (e.g., Translate to Urdu, or Explain meaning in French):")
-
-# 💡 Usage Note
 st.markdown("""
-> 💡 **Note:** Enter the **word or paragraph** in the first box. In the second box, write what you want — for example:  
-> - "Translate it into Urdu"  
-> - "Tell me its meaning in French"  
-> - "Explain the word in simple English"
+> 💡 Example Instructions:
+> - "Translate into Urdu"
+> - "Explain in simple English"
+> - "Tell me its meaning in French"
 """)
 
-# Define async wrapper
-async def run_translation():
-    return await Runner.run_async(
-        Translator,
-        input=f"{text_input}. {target_lang}",
-        run_config=config
-    )
-
-if st.button("Translate"):
-    if text_input and target_lang:
-        with st.spinner("Translating..."):
-            loop = asyncio.get_event_loop()
-            response = loop.run_until_complete(run_translation())
-            st.success("Translation complete!")
-            st.write("**🌐 Result:**")
-            st.markdown(response.output)
+# Handle Button Click
+if st.button("🚀 Translate"):
+    if text_input.strip() and target_lang.strip():
+        with st.spinner("🔄 Translating..."):
+            try:
+                # Use sync call instead of async
+                full_input = f"{text_input.strip()}. {target_lang.strip()}"
+                response = Runner.run_sync(
+                    translator_agent,
+                    input=full_input,
+                    run_config=config
+                )
+                st.success("✅ Done!")
+                st.markdown("### 🌐 Result:")
+                st.write(response.final_output)
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
     else:
-        st.warning("Please fill in both the word/paragraph and your instruction.")
+        st.warning("⚠️ Please fill in both fields.")
