@@ -55,14 +55,13 @@ async def run_translation():
         run_config=config
     )
 
-# Handle translate button
+# Use streamlit's asyncio-compatible run helper
 if st.button("Translate"):
     if text_input and target_lang:
         with st.spinner("Translating..."):
-            response = asyncio.run(run_translation())
+            response = asyncio.run_coroutine_threadsafe(run_translation(), asyncio.get_event_loop()).result()
             st.success("Translation complete!")
             st.write("**🌐 Result:**")
             st.markdown(response.output)
-    else:
         st.warning("Please fill in both the word/paragraph and your instruction.")
 
