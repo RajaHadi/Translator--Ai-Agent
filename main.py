@@ -55,7 +55,7 @@ if st.button("🚀 Translate"):
     if text_input.strip() and target_lang.strip():
         with st.spinner("🔄 Translating..."):
             try:
-                full_input = f""{text_input.strip()}." {target_lang.strip()}"
+                full_input = f"This is prompt"{text_input.strip()}." Do this with it= "{target_lang.strip()}""
                 response = Runner.run_sync(
                     translator_agent,
                     input=full_input,
